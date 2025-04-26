@@ -1,7 +1,11 @@
 package com.uber.service;
 
+import com.uber.model.DriverES;
+import com.uber.model.Role;
 import com.uber.model.User;
 import com.uber.model.dto.LoginRequest;
+import com.uber.model.dto.LoginResponse;
+import com.uber.repository.DriverESRepository;
 import com.uber.repository.UserRepository;
 import com.uber.security.JWTService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -21,28 +23,43 @@ import java.util.Optional;
 public class AuthService {
 
     @Autowired
-    UserRepository userRepo;
+    private UserRepository userRepo;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    AuthenticationManager authManager;
+    private AuthenticationManager authManager;
 
     @Autowired
-    JWTService jwtService;
+    private JWTService jwtService;
+
+    @Autowired
+    private DriverESRepository esRepository;
 
     public ResponseEntity<?> registerUser(User user) throws Exception {
 
         String username = user.getEmail();
         if (userRepo.existsByEmail(username)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists...!");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         try {
-            user.setId(Utility.generateId());
+            String id = Utility.generateId();
+            user.setId(id);
             userRepo.save(user);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body("User registered successfully");
+
+            if (user.getRole() == Role.DRIVER) {
+                DriverES driverES = new DriverES();
+                driverES.setId(Utility.generateId());
+                driverES.setDriverId(id);
+                driverES.setEmail(user.getEmail());
+                driverES.setAvailable(false);
+
+                esRepository.save(driverES);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -51,12 +68,13 @@ public class AuthService {
     public ResponseEntity<?> login(LoginRequest request) {
         Optional<User> optionalUser = userRepo.findByEmail(request.getEmail());
         if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not registered");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not registered...!");
         }
 
         try {
-            authManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    request.getEmail(), request.getPassword()));
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username/password");
         }
@@ -67,12 +85,18 @@ public class AuthService {
         user.setAvailable(true);
         userRepo.save(user);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("id", user.getId());
-        response.put("username", user.getEmail());
-        response.put("token", token);
+        if (user.getRole() == Role.DRIVER) {
+            DriverES driver = esRepository.findByDriverId(user.getId())
+                    .orElseThrow(() -> new RuntimeException("No driver available...!"));
 
-        return ResponseEntity.ok(response);
+            driver.setAvailable(true);
+            esRepository.save(driver);
+        }
+
+        return ResponseEntity.ok(
+                new LoginResponse(user.getId(), user.getEmail(), user.getRole(), token)
+        );
+
     }
 
 }

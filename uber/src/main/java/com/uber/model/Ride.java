@@ -35,6 +35,8 @@ public class Ride {
     @Column(updatable = false)
     private LocalDateTime requestedAt = LocalDateTime.now();
 
+    private LocalDateTime acceptedAt;
+
     private LocalDateTime boardedAt;
 
     private LocalDateTime droppedAt;

@@ -2,8 +2,9 @@ package com.uber.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class RideResponse {
     private String rideId;

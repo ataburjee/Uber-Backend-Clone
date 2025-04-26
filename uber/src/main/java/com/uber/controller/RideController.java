@@ -21,13 +21,12 @@ public class RideController {
     private RideService rideService;
 
     @PostMapping("/request")
-    @PreAuthorize("hasRole('RIDER')")
     public ResponseEntity<?> requestRide(@RequestBody RideRequest request, Authentication auth) {
         return rideService.requestRide(request, auth.getName());
     }
 
     @PostMapping("/respond/{id}")
-    @PreAuthorize("hasRole('DRIVER')")
+    @PreAuthorize("hasAuthority('DRIVER')")
     public ResponseEntity<String> respondToRide(@PathVariable("id") String rideId,
                                                 @RequestParam boolean accept,
                                                 Authentication auth) {

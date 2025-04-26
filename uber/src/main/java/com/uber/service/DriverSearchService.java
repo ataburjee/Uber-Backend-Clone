@@ -16,17 +16,19 @@ public class DriverSearchService {
     private DriverESRepository driverESRepository;
 
     public List<DriverES> findNearbyDrivers(double pickupLat, double pickupLng, double radiusKm) {
+
         List<DriverES> availableDrivers = driverESRepository.findByAvailable(true);
 
-        return availableDrivers.stream()
-                .filter(driver -> {
-                    double distance = calculateDistance(
-                            pickupLat, pickupLng,
-                            driver.getLatitude(), driver.getLongitude()
-                    );
-                    return distance <= radiusKm;
-                })
-                .collect(Collectors.toList());
+        return availableDrivers;
+//        return availableDrivers.stream()
+//                .filter(driver -> {
+//                    double distance = calculateDistance(
+//                            pickupLat, pickupLng,
+//                            driver.getLatitude(), driver.getLongitude()
+//                    );
+//                    return distance <= radiusKm;
+//                })
+//                .collect(Collectors.toList());
     }
 
     //Calculating distance between a driver and a rider assuming the distance a straight line

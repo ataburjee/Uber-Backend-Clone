@@ -1,8 +1,10 @@
 package com.uber.model.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class RideRequest {
     private double pickupLat;
     private double pickupLng;

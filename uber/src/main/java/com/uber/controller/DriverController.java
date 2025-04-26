@@ -19,7 +19,7 @@ public class DriverController {
     private UserRepository userRepo;
 
     @PutMapping("/location")
-    @PreAuthorize("hasRole('DRIVER')")
+    @PreAuthorize("hasAuthority('DRIVER')")
     public ResponseEntity<String> updateLocation(@RequestParam double lat, @RequestParam double lng, Authentication auth) {
 
         User driver = userRepo.findByEmail(auth.getName())

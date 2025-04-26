@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -34,7 +35,7 @@ public class RideService {
 
         //Finding all available drivers from Elasticsearch (within 5 km radius)
         List<DriverES> availableDrivers = driverSearchService.findNearbyDrivers(
-                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 5.0);
+                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 500.0);
 
         if (availableDrivers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No drivers available nearby");
@@ -56,6 +57,7 @@ public class RideService {
 
         //Creating and saving the ride
         Ride ride = new Ride();
+        ride.setId(Utility.generateId());
         ride.setPickupLat(rideRequest.getPickupLat());
         ride.setPickupLng(rideRequest.getPickupLng());
         ride.setDropLat(rideRequest.getDropLat());
@@ -99,6 +101,7 @@ public class RideService {
         if (accepted) {
             ride.setStatus(RideStatus.ACCEPTED);
             ride.getDriver().setAvailable(false);
+            ride.setAcceptedAt(LocalDateTime.now());
             userRepo.save(ride.getDriver());
             rideRepo.save(ride);
             return "Ride accepted. Proceed to pickup.";
