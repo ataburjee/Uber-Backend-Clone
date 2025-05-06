@@ -12,6 +12,6 @@ public interface DriverESRepository extends ElasticsearchRepository<DriverES, St
 
     Optional<DriverES> findByDriverId(String driver);
 
-    List<DriverES> findByAvailable(boolean available);
+    List<DriverES> findByAvailableTrue();
 
 }

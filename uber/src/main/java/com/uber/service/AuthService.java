@@ -54,6 +54,8 @@ public class AuthService {
                 driverES.setId(Utility.generateId());
                 driverES.setDriverId(id);
                 driverES.setEmail(user.getEmail());
+                driverES.setLatitude(user.getCurrentLat());
+                driverES.setLongitude(user.getCurrentLng());
                 driverES.setAvailable(false);
 
                 esRepository.save(driverES);

@@ -5,9 +5,10 @@ import com.uber.model.User;
 import com.uber.repository.DriverESRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class DriverSearchService {
@@ -17,18 +18,18 @@ public class DriverSearchService {
 
     public List<DriverES> findNearbyDrivers(double pickupLat, double pickupLng, double radiusKm) {
 
-        List<DriverES> availableDrivers = driverESRepository.findByAvailable(true);
+        List<DriverES> availableDrivers = driverESRepository.findByAvailableTrue();
 
-        return availableDrivers;
-//        return availableDrivers.stream()
-//                .filter(driver -> {
-//                    double distance = calculateDistance(
-//                            pickupLat, pickupLng,
-//                            driver.getLatitude(), driver.getLongitude()
-//                    );
-//                    return distance <= radiusKm;
-//                })
-//                .collect(Collectors.toList());
+        List<DriverES> list = availableDrivers.stream()
+                .filter(driver -> {
+                    double distance = calculateDistance(
+                            pickupLat, pickupLng,
+                            driver.getLatitude(), driver.getLongitude()
+                    );
+                    return distance <= radiusKm;
+                })
+                .toList();
+        return new ArrayList<>(list);
     }
 
     //Calculating distance between a driver and a rider assuming the distance a straight line

@@ -11,8 +11,6 @@ import java.util.Optional;
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
 
-    List<Ride> findByDriverIdAndStatus(String driverId, RideStatus status);
-
     Optional<Ride> findById(String rideId);
 
     List<Ride> findByRiderEmailOrderByRequestedAtDesc(String riderEmail);
@@ -20,6 +18,8 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     List<Ride> findByDriverEmailOrderByRequestedAtDesc(String driverEmail);
 
     long countByStatus(RideStatus status);
+
+    boolean existsByDriverIdAndStatus(String driverId, RideStatus rideStatus);
 
 }
 

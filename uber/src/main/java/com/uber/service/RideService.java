@@ -14,7 +14,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class RideService {
@@ -26,30 +27,36 @@ public class RideService {
     private UserRepository userRepo;
 
     @Autowired
-    DriverSearchService driverSearchService;
+    private DriverSearchService driverSearchService;
 
     public ResponseEntity<?> requestRide(RideRequest rideRequest, String riderEmail) {
 
         User rider = userRepo.findByEmail(riderEmail)
                 .orElseThrow(() -> new RuntimeException("Rider not found"));
 
-        //Finding all available drivers from Elasticsearch (within 5 km radius)
+        //Finding all available drivers from Elasticsearch (within 10 km radius)
         List<DriverES> availableDrivers = driverSearchService.findNearbyDrivers(
-                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 500.0);
+                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 10.0);
 
         if (availableDrivers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No drivers available nearby");
         }
 
-        //Sorting drivers by distance
-        availableDrivers.sort(Comparator.comparingDouble(driver ->
-                calculateDistance(
-                        rideRequest.getPickupLat(), rideRequest.getPickupLng(),
-                        driver.getLatitude(), driver.getLongitude()
+        //Filter those Drivers who are not in IN_PROGRESS
+        //1. Find the driverId from the driverES
+        //2. Find associated rides with the driver where status is not IN_PROGRESS --> return those
+        //3. Sort those drivers and get the first driver**
+        DriverES nearestDriverIndex = availableDrivers.stream()
+                .filter(driverES ->
+                        !rideRepo.existsByDriverIdAndStatus(driverES.getDriverId(), RideStatus.IN_PROGRESS)
                 )
-        ));
-
-        DriverES nearestDriverIndex = availableDrivers.getFirst();
+                .sorted(Comparator.comparingDouble(driver ->
+                        calculateDistance(
+                                rideRequest.getPickupLat(), rideRequest.getPickupLng(),
+                                driver.getLatitude(), driver.getLongitude()
+                        )
+                ))
+                .toList().getFirst();
 
         //Get the User(Driver) Object
         User nearestDriver = userRepo.findById(nearestDriverIndex.getDriverId())
@@ -71,8 +78,11 @@ public class RideService {
             return ResponseEntity.ok(
                     new RideResponse(
                             ride.getId(),
-                            "Ride requested, finding the nearest driver...",
-                            nearestDriver.getEmail()
+                            rider.getId(),
+                            rider.getEmail(),
+                            nearestDriver.getId(),
+                            nearestDriver.getEmail(),
+                            "Ride requested, Notified to the driver..."
                     )
             );
         } catch (Exception e) {
@@ -85,9 +95,8 @@ public class RideService {
     public double calculateDistance(double lat1,
                                     double lng1,
                                     double lat2,
-                                    double lng2)
-    {
-        return Math.sqrt(Math.pow((lat2-lat1), 2) + (Math.pow((lng2-lng1), 2)));
+                                    double lng2) {
+        return Math.sqrt(Math.pow((lat2 - lat1), 2) + (Math.pow((lng2 - lng1), 2)));
     }
 
     public String respondToRide(String rideId, boolean accepted, String driverEmail) {
@@ -160,21 +169,21 @@ public class RideService {
         if (roles.contains(Role.ADMIN.name())) {
             List<Ride> ridesOfADriver = rideRepo.findAll();
             response = ridesOfADriver.stream().map(ride ->
-                    getFormattedRideHistory(ride)
-                            .setDriverId(ride.getDriver().getId())
-                            .setRiderId(ride.getRider().getId()))
+                            getFormattedRideHistory(ride)
+                                    .setDriverId(ride.getDriver().getId())
+                                    .setRiderId(ride.getRider().getId()))
                     .toList();
         } else if (roles.contains(Role.DRIVER.name())) {
             List<Ride> ridesOfADriver = rideRepo.findByDriverEmailOrderByRequestedAtDesc(email);
             response = ridesOfADriver.stream().map(ride ->
-                    getFormattedRideHistory(ride)
-                            .setDriverId(ride.getDriver().getId()))
+                            getFormattedRideHistory(ride)
+                                    .setDriverId(ride.getDriver().getId()))
                     .toList();
         } else if (roles.contains(Role.RIDER.name())) {
             List<Ride> ridesOfARider = rideRepo.findByRiderEmailOrderByRequestedAtDesc(email);
             response = ridesOfARider.stream().map(ride ->
-                    getFormattedRideHistory(ride)
-                            .setRiderId(ride.getRider().getId()))
+                            getFormattedRideHistory(ride)
+                                    .setRiderId(ride.getRider().getId()))
                     .toList();
         } else {
             throw new RuntimeException("Not Authorized...");

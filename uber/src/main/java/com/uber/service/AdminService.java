@@ -43,23 +43,27 @@ public class AdminService {
     }
 
     public ResponseEntity<AdminDashboardStats> getStats() {
-        long totalUsers = userRepository.count();
-        long totalRiders = userRepository.countByRole(Role.RIDER);
-        long totalDrivers = userRepository.countByRole(Role.DRIVER);
+        try {
+            long totalUsers = userRepository.count();
+            long totalRiders = userRepository.countByRole(Role.RIDER);
+            long totalDrivers = userRepository.countByRole(Role.DRIVER);
 
-        long activeRides = rideRepository.countByStatus(RideStatus.IN_PROGRESS);
-        long completedRides = rideRepository.countByStatus(RideStatus.COMPLETED);
-        long pendingRequests = rideRepository.countByStatus(RideStatus.REQUESTED);
+            long activeRides = rideRepository.countByStatus(RideStatus.IN_PROGRESS);
+            long completedRides = rideRepository.countByStatus(RideStatus.COMPLETED);
+            long pendingRequests = rideRepository.countByStatus(RideStatus.REQUESTED);
 
-        AdminDashboardStats stats = new AdminDashboardStats(
-                totalUsers,
-                totalRiders,
-                totalDrivers,
-                activeRides,
-                completedRides,
-                pendingRequests
-        );
+            AdminDashboardStats stats = new AdminDashboardStats(
+                    totalUsers,
+                    totalRiders,
+                    totalDrivers,
+                    activeRides,
+                    completedRides,
+                    pendingRequests
+            );
+            return ResponseEntity.ok(stats);
 
-        return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

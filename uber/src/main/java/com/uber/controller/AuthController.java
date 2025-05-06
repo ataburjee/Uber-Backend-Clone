@@ -1,19 +1,15 @@
 package com.uber.controller;
 
-import com.uber.model.DriverES;
-import com.uber.model.dto.LoginRequest;
 import com.uber.model.User;
+import com.uber.model.dto.LoginRequest;
 import com.uber.repository.DriverESRepository;
 import com.uber.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
