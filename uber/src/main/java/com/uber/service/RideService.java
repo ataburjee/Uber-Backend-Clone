@@ -36,7 +36,7 @@ public class RideService {
 
         //Finding all available drivers from Elasticsearch (within 10 km radius)
         List<DriverES> availableDrivers = driverSearchService.findNearbyDrivers(
-                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 10.0);
+                rideRequest.getPickupLat(), rideRequest.getPickupLng(), 5.0);
 
         if (availableDrivers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No drivers available nearby");
@@ -51,7 +51,7 @@ public class RideService {
                         !rideRepo.existsByDriverIdAndStatus(driverES.getDriverId(), RideStatus.IN_PROGRESS)
                 )
                 .sorted(Comparator.comparingDouble(driver ->
-                        calculateDistance(
+                        Utility.calculateDistance(
                                 rideRequest.getPickupLat(), rideRequest.getPickupLng(),
                                 driver.getLatitude(), driver.getLongitude()
                         )
@@ -92,12 +92,12 @@ public class RideService {
 
 
     //Calculating distance between a driver and a rider assuming the distance a straight line
-    public double calculateDistance(double lat1,
-                                    double lng1,
-                                    double lat2,
-                                    double lng2) {
-        return Math.sqrt(Math.pow((lat2 - lat1), 2) + (Math.pow((lng2 - lng1), 2)));
-    }
+//    public double calculateDistance(double lat1,
+//                                    double lng1,
+//                                    double lat2,
+//                                    double lng2) {
+//        return Math.sqrt(Math.pow((lat2 - lat1), 2) + (Math.pow((lng2 - lng1), 2)));
+//    }
 
     public String respondToRide(String rideId, boolean accepted, String driverEmail) {
         Ride ride = rideRepo.findById(rideId)

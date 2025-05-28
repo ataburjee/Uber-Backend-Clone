@@ -22,7 +22,7 @@ public class DriverSearchService {
 
         List<DriverES> list = availableDrivers.stream()
                 .filter(driver -> {
-                    double distance = calculateDistance(
+                    double distance = Utility.calculateDistance(
                             pickupLat, pickupLng,
                             driver.getLatitude(), driver.getLongitude()
                     );
@@ -33,13 +33,13 @@ public class DriverSearchService {
     }
 
     //Calculating distance between a driver and a rider assuming the distance a straight line
-    public double calculateDistance(double lat1,
-                                    double lng1,
-                                    double lat2,
-                                    double lng2)
-    {
-        return Math.sqrt(Math.pow((lat2-lat1), 2) + (Math.pow((lng2-lng1), 2)));
-    }
+//    public double calculateDistance(double lat1,
+//                                    double lng1,
+//                                    double lat2,
+//                                    double lng2)
+//    {
+//        return Math.sqrt(Math.pow((lat2-lat1), 2) + (Math.pow((lng2-lng1), 2)));
+//    }
 
     public Optional<DriverES> findDriverById(String driverId) {
         return driverESRepository.findById(driverId);
