@@ -42,7 +42,7 @@ public class DriverSearchService {
 //    }
 
     public Optional<DriverES> findDriverById(String driverId) {
-        return driverESRepository.findById(driverId);
+        return driverESRepository.findByDriverId(driverId);
     }
 
     public void updateDriverLocationAndAvailability(User driver) {

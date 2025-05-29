@@ -34,7 +34,7 @@ public class RideService {
         User rider = userRepo.findByEmail(riderEmail)
                 .orElseThrow(() -> new RuntimeException("Rider not found"));
 
-        //Finding all available drivers from Elasticsearch (within 10 km radius)
+        //Finding all available drivers from Elasticsearch (within 5 km radius)
         List<DriverES> availableDrivers = driverSearchService.findNearbyDrivers(
                 rideRequest.getPickupLat(), rideRequest.getPickupLng(), 5.0);
 
@@ -121,16 +121,16 @@ public class RideService {
         }
     }
 
-    public ResponseEntity<?> updateRideStatus(String rideId, RideStatus newStatus, String driverEmail) {
+    public ResponseEntity<?> updateRideStatus(String rideId, RideStatus newStatus, String driverId) {
         Ride ride = rideRepo.findById(rideId)
                 .orElseThrow(() -> new RuntimeException("Ride not found"));
 
-        DriverES driverES = driverSearchService.findDriverById(rideId)
+        DriverES driverES = driverSearchService.findDriverById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found"));
 
         User driver = ride.getDriver();
 
-        if (!driver.getEmail().equals(driverEmail)) {
+        if (!driver.getId().equals(driverId)) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Unauthorized.");
         }
 
