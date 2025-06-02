@@ -113,6 +113,7 @@ public class RideService {
             ride.setAcceptedAt(LocalDateTime.now());
             userRepo.save(ride.getDriver());
             rideRepo.save(ride);
+
             return "Ride accepted. Proceed to pickup.";
         } else {
             ride.setStatus(RideStatus.REJECTED);
@@ -200,5 +201,29 @@ public class RideService {
 //             TODO: Pickup location, Drop location
     }
 
+    public ResponseEntity<Double> getETA(String rideId) {
+        try {
+            Ride ride = rideRepo.findById(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
+            Double estimatedTime = Utility.calculateETA(ride.getPickupLat(), ride.getPickupLng(), ride.getDriver().getCurrentLat(), ride.getDriver().getCurrentLng());
+            return ResponseEntity.ok(estimatedTime);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public ResponseEntity<String> cancelRide(String rideId, Authentication auth) {
+        try {
+            Ride ride = rideRepo.findById(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
+            ride.setStatus(RideStatus.CANCELLED);
+            rideRepo.save(ride);
+            return ResponseEntity.ok(
+                    auth.getAuthorities().contains("DRIVER")
+                            ? "Cancelled by the driver"
+                            : "Cancelled by the rider"
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 }
 

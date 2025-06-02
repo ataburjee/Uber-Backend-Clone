@@ -33,5 +33,17 @@ public class Utility {
 
     }
 
+    public static Double calculateETA(double lat1,
+                                double lng1,
+                                double lat2,
+                                double lng2) {
+        double distance = calculateDistance(lat1, lng1, lat2, lng2);
+
+        //speed in km/min
+        double eSpeed = (double) 50 /60;
+        //Estimated Time in min
+        return (distance / eSpeed);
+    }
+
 }
 

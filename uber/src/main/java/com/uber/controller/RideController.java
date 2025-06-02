@@ -25,7 +25,7 @@ public class RideController {
         return rideService.requestRide(request, auth.getName());
     }
 
-    @PostMapping("/respond/{id}")
+    @PostMapping("/{id}/respond")
     @PreAuthorize("hasAuthority('DRIVER')")
     public ResponseEntity<String> respondToRide(@PathVariable("id") String rideId,
                                                 @RequestParam boolean accept,
@@ -42,6 +42,17 @@ public class RideController {
             @RequestParam String driverEmail) {
 
         return rideService.updateRideStatus(rideId, status, driverEmail);
+    }
+
+    @PostMapping("/{id}/cancel-ride")
+    public ResponseEntity<?> cancelRide(@PathVariable("id") String rideId, Authentication auth) {
+        return rideService.cancelRide(rideId, auth);
+    }
+
+
+    @GetMapping("{id}/eta")
+    public ResponseEntity<?> getETA(@PathVariable String id) {
+        return rideService.getETA(id);
     }
 
     @GetMapping("/ride-history")
